@@ -5,51 +5,63 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 N = 50
-xs = np.linspace(-np.pi, np.pi, N, dtype=np.float64)
+xs = np.linspace(-np.pi, np.pi, N, dtype=np.float32)
 ys = np.sin(xs) + np.random.normal(0, 0.1, N)
-xplot = np.linspace(-4, 4, 1000)
 
-M = 20
+class Model():
+    def __init__(self, sess, n_epochs, learning_rate, M):
+        self.sess = sess
+        self.n_epochs = n_epochs
+        self.learning_rate = learning_rate
+        self.M = M
+        self.build_model()
 
-two = tf.constant(2, dtype=tf.float64)
-x = tf.placeholder(tf.float64) # input
-y = tf.placeholder(tf.float64) # output
-mu = tf.Variable(tf.random_normal([M, 1], dtype=tf.float64), dtype=tf.float64, name="mean")
-var = tf.Variable(tf.ones([M, 1], dtype=tf.float64), dtype=tf.float64, name="variance")
-w =  tf.Variable(tf.random_normal([1, M], dtype=tf.float64), dtype=tf.float64, name="weight")
-b = tf.Variable(0, dtype=tf.float64, name="bias")
+    def build_model(self):
+        self.x = tf.placeholder(tf.float32) # input
+        self.y = tf.placeholder(tf.float32) # output
 
-gaussian = tf.exp(tf.negative(tf.divide(tf.square(tf.sub(x, mu)), var)))
+        two = tf.constant(2, dtype=tf.float32)
 
+        self.mu = tf.get_variable(shape=[self.M, 1], dtype=tf.float32, name="mean", initializer=tf.random_normal_initializer(stddev=1))
+        self.var = tf.get_variable(shape=[self.M, 1], dtype=tf.float32, name="variance", initializer=tf.ones_initializer())
+        self.w =  tf.get_variable(shape=[1, self.M], dtype=tf.float32, name="weight", initializer=tf.random_normal_initializer(stddev=1))
+        self.b = tf.Variable(0, dtype=tf.float32, name="bias")
 
-yest = tf.add(tf.matmul(w, gaussian), b)
+        self.gaussian = tf.exp(tf.negative(tf.divide(tf.square(tf.sub(self.x, self.mu)), self.var)))
 
-loss = tf.reduce_sum(tf.divide(tf.squared_difference(y, yest), two))
+        self.yest = tf.add(tf.matmul(self.w, self.gaussian), self.b)
 
-learning_rate = 0.01
-training_epochs = 1000
-display_step = 50
+        self.loss = tf.reduce_sum(tf.divide(tf.squared_difference(self.y, self.yest), two))
 
-optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
+    def train(self, xs, ys):
+        optimizer = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
+        self.sess.run(tf.global_variables_initializer())
+        for epoch in range(self.n_epochs):
+            for x, y in zip(xs, ys):
+                sess.run(optimizer, feed_dict={self.x: x, self.y: y})
 
-init = tf.global_variables_initializer()
+    def predict(self, x):
+        return sess.run(self.yest, feed_dict={self.x: x})
 
 with tf.Session() as sess:
-    sess.run(init)
+    model = Model(sess, 20, 0.01, 20)
+    model.train(xs, ys)
 
-    for epoch in range(training_epochs):
-        for (xi, yi) in zip(xs, ys):
-            sess.run(optimizer, feed_dict={x: xi, y: yi})
+    fig = plt.figure(figsize=(20,10))
+    fig.set_tight_layout({"pad": 1})
+    p = plt.subplot(1,2,1)
+    xplot = np.linspace(-4, 4, 1000)
+    p.plot(xplot, np.sin(xplot), 'b')
+    p.plot(xplot, model.predict(xplot)[0], 'r-')
+    p.plot(xs, ys, 'go')
+    p.set_xlabel('x')
+    p.set_ylabel('y', rotation=0)
+    p.set_title('Fit')
 
-        if (epoch+1) % display_step == 0:
-            print(sess.run(loss, feed_dict={x: xs, y: ys}))
+    p = plt.subplot(1,2,2)
+    p.plot(xplot, sess.run(tf.transpose(model.gaussian+model.b), feed_dict={model.x: xplot}))
+    p.set_xlabel('x')
+    p.set_ylabel('y', rotation=0)
+    p.set_title('Bases for fit')
 
-    print(sess.run(yest, feed_dict={x: xs}))
-
-    plt.plot(xs, ys, 'ro', label='Original data')
-    plt.plot(xplot, sess.run(yest, feed_dict={x: xplot})[0], 'b', label='Fitted line')
-    plt.legend()
-    plt.show()
-
-    plt.plot(xplot, sess.run(tf.transpose(gaussian+b), feed_dict={x: xplot}))
     plt.show()
