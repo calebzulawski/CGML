@@ -44,7 +44,7 @@ class Model():
         return sess.run(self.yest, feed_dict={self.x: x})
 
 with tf.Session() as sess:
-    model = Model(sess, 20, 0.01, 20)
+    model = Model(sess, 20, 0.01, 5)
     model.train(xs, ys)
 
     fig = plt.figure(figsize=(20,10))
@@ -59,7 +59,7 @@ with tf.Session() as sess:
     p.set_title('Fit')
 
     p = plt.subplot(1,2,2)
-    p.plot(xplot, sess.run(tf.transpose(model.gaussian+model.b), feed_dict={model.x: xplot}))
+    p.plot(xplot, sess.run(tf.multiply(model.w, tf.transpose(model.gaussian))+model.b, feed_dict={model.x: xplot}))
     p.set_xlabel('x')
     p.set_ylabel('y', rotation=0)
     p.set_title('Bases for fit')
