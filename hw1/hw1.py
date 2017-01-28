@@ -44,7 +44,7 @@ class Model():
         return sess.run(self.yest, feed_dict={self.x: x})
 
 with tf.Session() as sess:
-    model = Model(sess, 20, 0.01, 5)
+    model = Model(sess, 100, 0.01, 10)
     model.train(xs, ys)
 
     fig = plt.figure(figsize=(20,10))
