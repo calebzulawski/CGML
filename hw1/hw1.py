@@ -44,12 +44,6 @@ with tf.Session() as sess:
         if (epoch+1) % display_step == 0:
             print(sess.run(loss, feed_dict={x: xs, y: ys}))
 
-    #Display logs per epoch step
-    # if (epoch+1) % display_step == 0:
-    #     c = sess.run(cost, feed_dict={X: train_X, Y:train_Y})
-    #     print "Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(c), \
-    #         "W=", sess.run(W), "b=", sess.run(b)
-
     print(sess.run(yest, feed_dict={x: xs}))
 
     plt.plot(xs, ys, 'ro', label='Original data')
