@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
+# Caleb Zulawski
+# ECE411 - Computational Graphs for Machine Learning
+# Assignment 1 - Linear regression with with Gaussian basis functions
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Generate 50 data points, pulled from a sine wave between -pi and pi with AWGN, 0.1 SD
 N = 50
 xs = np.linspace(-np.pi, np.pi, N, dtype=np.float32)
 ys = np.sin(xs) + np.random.normal(0, 0.1, N)
@@ -44,6 +49,9 @@ class Model():
         return sess.run(self.yest, feed_dict={self.x: x})
 
 with tf.Session() as sess:
+    # 100 epochs is probably way more than necessary, but it runs fast
+    # 0.01 learning rate seems to work well, picked for no other reason
+    # 10 bases fits and generalizes well
     model = Model(sess, 100, 0.01, 10)
     model.train(xs, ys)
 
