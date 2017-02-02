@@ -35,13 +35,13 @@ class Model():
         self.x = tf.placeholder(tf.float32, [n_input, 1])
         self.y = tf.placeholder(tf.float32, [1, n_output])
 
-        w1 = tf.get_variable(shape=[n_input, n_hidden_1], dtype=tf.float32, name="w1", initializer=tf.random_normal_initializer())
-        w2 = tf.get_variable(shape=[n_hidden_1, n_hidden_2], dtype=tf.float32, name="w2", initializer=tf.random_normal_initializer())
-        wo = tf.get_variable(shape=[n_hidden_2, n_output], dtype=tf.float32, name="wo", initializer=tf.random_normal_initializer())
+        w1 = tf.get_variable(shape=[n_input, n_hidden_1], dtype=tf.float32, name="weight1", initializer=tf.random_normal_initializer())
+        w2 = tf.get_variable(shape=[n_hidden_1, n_hidden_2], dtype=tf.float32, name="weight2", initializer=tf.random_normal_initializer())
+        wo = tf.get_variable(shape=[n_hidden_2, n_output], dtype=tf.float32, name="weighto", initializer=tf.random_normal_initializer())
 
-        b1 = tf.get_variable(shape=[n_hidden_1], dtype=tf.float32, name="b1", initializer=tf.random_normal_initializer())
-        b2 = tf.get_variable(shape=[n_hidden_2], dtype=tf.float32, name="b2", initializer=tf.random_normal_initializer())
-        bo = tf.get_variable(shape=[n_output], dtype=tf.float32, name="bo", initializer=tf.random_normal_initializer())
+        b1 = tf.get_variable(shape=[n_hidden_1], dtype=tf.float32, name="bias1", initializer=tf.random_normal_initializer())
+        b2 = tf.get_variable(shape=[n_hidden_2], dtype=tf.float32, name="bias2", initializer=tf.random_normal_initializer())
+        bo = tf.get_variable(shape=[n_output], dtype=tf.float32, name="biaso", initializer=tf.random_normal_initializer())
 
         layer_1 = tf.add(tf.matmul(tf.transpose(self.x), w1), b1)
         layer_1 = tf.nn.relu(layer_1)
@@ -53,6 +53,8 @@ class Model():
 
     def train(self, xs, ys, cs):
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.layer_out, labels=self.y))
+        vs = tf.trainable_variables()
+        cost += tf.add_n([ tf.nn.l2_loss(v) for v in vs if 'bias' not in v.name ]) * 0.001
         optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(cost)
         self.sess.run(tf.global_variables_initializer())
         for epoch in range(self.n_epochs):
