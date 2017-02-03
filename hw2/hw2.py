@@ -67,7 +67,7 @@ class Model():
         v = np.expand_dims(np.asarray([x, y]), axis=1)
         return self.sess.run(self.out, feed_dict={self.x: v})[0][1] > 0.5
 
-n_train = 100;
+n_train = 1000; # if the training set is sparser, sometimes there are gaps in the spiral and it doesn't train well
 n_test = 1000;
 x_train, y_train, c_train = get_data(n_train)
 x_test, y_test, c_test = get_data(n_test)
@@ -81,8 +81,10 @@ with tf.Session() as sess:
     for x, y, c in zip(x_test, y_test, c_test):
         pred = np.append(pred, model.predict(x, y))
 
-    print(np.sum(np.equal(c_test, pred))/n_test)
-
+    plt.figure()
+    plt.xlabel('x')
+    plt.ylabel('y', rotation=0)
+    plt.title('Spiral data predictions (accuracy: {})'.format(np.sum(np.equal(c_test, pred))/n_test))
     plt.plot(x_test[pred == True], y_test[pred == True], 'ro')
     plt.plot(x_test[pred == False], y_test[pred == False], 'bo')
     plt.show()
