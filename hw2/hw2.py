@@ -63,9 +63,14 @@ class Model():
                 l = np.reshape([not(c).astype(float), c.astype(float)], (1, 2))
                 self.sess.run(optimizer, feed_dict={self.x: v, self.y: l})
 
-    def predict(self, x, y):
+    def predict_p1(self, x, y):
         v = np.expand_dims(np.asarray([x, y]), axis=1)
-        return self.sess.run(self.out, feed_dict={self.x: v})[0][1] > 0.5
+        return self.sess.run(self.out, feed_dict={self.x: v})[0][1]
+
+    def predict(self, x, y):
+        return self.predict_p1(x, y) > 0.5
+
+
 
 n_train = 1000; # if the training set is sparser, sometimes there are gaps in the spiral and it doesn't train well
 n_test = 1000;
@@ -77,11 +82,17 @@ with tf.Session() as sess:
     model.train(x_train, y_train, c_train)
 
     total = 0;
-    pred = np.array([]);
+    pred = np.array([])
     for x, y, c in zip(x_test, y_test, c_test):
         pred = np.append(pred, model.predict(x, y))
 
+    extents = np.arange(-7, 7, 0.1)
+    xg, yg = np.meshgrid(extents, extents);
+    f = np.vectorize(model.predict_p1)
+    zg = f(xg, yg)
+
     plt.figure()
+    plt.contour(xg, yg, zg, levels=[0.5])
     plt.xlabel('x')
     plt.ylabel('y', rotation=0)
     plt.title('Spiral data predictions (accuracy: {})'.format(np.sum(np.equal(c_test, pred))/n_test))
