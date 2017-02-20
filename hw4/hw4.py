@@ -2,14 +2,10 @@
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from tensorflow.contrib.learn.python.learn.datasets import mnist
-from tensorflow.contrib.slim.nets import inception
 import numpy as np
 
-from tflearn.datasets import cifar10
-from tensorflow.contrib.layers.python.layers import utils
-from tensorflow.contrib.slim.python.slim.nets import resnet_utils
-from tensorflow.contrib.slim.python.slim.nets import resnet_v2
+# from tflearn.datasets import cifar10
+from tflearn.datasets import cifar100
 
 def residual(inputs, depth, kernel, scope='residual'):
     with tf.variable_scope(scope, 'residual', [inputs]) as sc:
@@ -59,7 +55,7 @@ class Model():
                             weights_initializer=tf.truncated_normal_initializer(0.0, 0.01),
                             weights_regularizer=slim.l2_regularizer(0.002)):
             net = self.inputs
-            net = resnet_small(net, num_classes=10)
+            net = resnet_small(net, num_classes=self.n_classes)
         self.predictions = net
         slim.losses.softmax_cross_entropy(self.predictions, self.labels)
         self.loss = slim.losses.get_total_loss(add_regularization_losses=True)
@@ -76,7 +72,7 @@ class Model():
         for epoch in range(epochs):
             p = np.random.permutation(xs.shape[0])
             for i in range(num_minibatches):
-                print("Minibatch " + str(i) + '/' + str(num_minibatches))
+                # print("Minibatch " + str(i) + '/' + str(num_minibatches))
                 start = i * self.n_batch
                 end = (i + 1) * self.n_batch
                 self.train_minibatch(xs[p][start:end], ys[p][start:end])
@@ -90,13 +86,15 @@ class Model():
         return self.sess.run(self.predictions, feed_dict={self.inputs: xs})
 
 with tf.Session() as sess:
-    (train_images, train_labels), (test_images, test_labels) = cifar10.load_data(one_hot=True)
-    m = Model(sess, 128, 10, 0.01)
+    # (train_images, train_labels), (test_images, test_labels) = cifar10.load_data(one_hot=True)
+    # m = Model(sess, 128, 10, 0.01)
+    (train_images, train_labels), (test_images, test_labels) = cifar100.load_data(one_hot=True)
+    m = Model(sess, 128, 100, 0.01)
     sess.run(tf.global_variables_initializer())
     validation_images = train_images[0:5000]
     validation_labels = train_labels[0:5000]
     train_images = train_images[5000:]
     train_labels = train_labels[5000:]
-    m.train(train_images, train_labels, validation_images, validation_labels, 25)
+    m.train(train_images, train_labels, validation_images, validation_labels, 100)
     test_accuracy = m.validate(test_images, test_labels)
     print("Test set accuracy: {}".format(test_accuracy))
