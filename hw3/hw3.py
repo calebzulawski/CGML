@@ -3,7 +3,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from tensorflow.contrib.learn.python.learn.datasets import mnist
-from tensorflow.contrib.slim.nets import inception
 import numpy as np
 
 class Model():
@@ -52,7 +51,7 @@ class Model():
                 end = (i + 1) * self.n_batch
                 self.train_minibatch(xs[p][start:end], ys[p][start:end])
             accuracy = self.validate(xvs, yvs)
-            print("Epoch {} validation accuracy: {}%".format(epoch, accuracy))
+            print("Epoch {} validation accuracy: {}".format(epoch, accuracy))
 
     def validate(self, xs, ys):
         return self.sess.run(self.accuracy, feed_dict={self.inputs: xs, self.labels: ys})
